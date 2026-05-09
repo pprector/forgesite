@@ -27,14 +27,14 @@ function SignInSignUpButtons() {
         href={app.urls.signIn}
         className={buttonVariants({ variant: "secondary" })}
       >
-        Sign In
+        登录
       </Link>
 
       <Link
         href={app.urls.signUp}
         className={buttonVariants({ variant: "default" })}
       >
-        Sign Up
+        立即开始
       </Link>
     </>
   );
@@ -49,7 +49,7 @@ function AuthButtonsInner() {
         href="/dashboard"
         className={buttonVariants({ variant: "default" })}
       >
-        Dashboard
+        进入控制台
       </Link>
     );
   } else {
@@ -65,7 +65,9 @@ function AuthButtons() {
   );
 }
 
-function MobileItems(props: NavProps) {
+function MobileItems(
+  props: NavProps & { onNavigate?: () => void }
+) {
   return (
     <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto p-6 pb-32 animate-in slide-in-from-bottom-80 md:hidden">
       <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
@@ -80,6 +82,7 @@ function MobileItems(props: NavProps) {
               )}
               target={item.external ? "_blank" : undefined}
               rel={item.external ? "noreferrer" : undefined}
+              onClick={props.onNavigate}
             >
               {item.title}
             </Link>
@@ -146,7 +149,12 @@ export function LandingPageHeader(props: NavProps) {
 
           <Logo className="md:hidden" />
 
-          {showMobileMenu && props.items && <MobileItems items={props.items} />}
+          {showMobileMenu && props.items && (
+            <MobileItems
+              items={props.items}
+              onNavigate={() => setShowMobileMenu(false)}
+            />
+          )}
         </div>
 
         <div className="flex gap-4 items-center">

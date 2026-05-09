@@ -13,12 +13,22 @@ export function PageClient(props: { clientTeamCreationEnabled: boolean }) {
   const teams = user.useTeams();
   const [teamDisplayName, setTeamDisplayName] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
+  const redirectedTeamIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (teams.length > 0 && !user.selectedTeam) {
       user.setSelectedTeam(teams[0]);
     }
   }, [teams, user]);
+
+  React.useEffect(() => {
+    const activeTeam = user.selectedTeam ?? teams[0];
+    if (!activeTeam) return;
+    if (redirectedTeamIdRef.current === activeTeam.id) return;
+
+    redirectedTeamIdRef.current = activeTeam.id;
+    router.replace(`/dashboard/${activeTeam.id}`);
+  }, [router, teams, user.selectedTeam]);
 
   if (teams.length === 0) {
     if (!props.clientTeamCreationEnabled) {
@@ -70,8 +80,6 @@ export function PageClient(props: { clientTeamCreationEnabled: boolean }) {
         </div>
       </div>
     );
-  } else if (user.selectedTeam) {
-    router.push(`/dashboard/${user.selectedTeam.id}`);
   }
 
   return null;

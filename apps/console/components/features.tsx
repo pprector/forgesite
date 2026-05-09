@@ -17,6 +17,7 @@ export function FeatureGridItem(props: {
 }
 
 export function FeatureGrid(props: {
+  id?: string;
   title: string;
   subtitle: string;
   items: {
@@ -27,8 +28,8 @@ export function FeatureGrid(props: {
 }) {
   return (
     <section
-      id="features"
-      className="container space-y-6 py-8 md:py-12 lg:py-24"
+      id={props.id}
+      className="container scroll-mt-24 space-y-6 py-8 md:py-12 lg:py-24"
     >
       <div className="mx-auto flex max-w-6xl flex-col items-center space-y-4 text-center">
         <h2 className="text-3xl md:text-4xl font-semibold">

@@ -2,7 +2,7 @@ import { stackServerApp } from "@/stack";
 import { PageClient } from "./page-client";
 
 export const metadata = {
-  title: "Dashboard - Stack Template",
+  title: "控制台 - ForgeSite",
 };
 
 export default async function Dashboard() {

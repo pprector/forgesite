@@ -5,6 +5,7 @@ import Link from "next/link";
 export function Hero(props: {
   capsuleText: string;
   capsuleLink: string;
+  capsuleExternal?: boolean;
   title: string;
   subtitle: string;
   credits?: React.ReactNode;
@@ -12,6 +13,7 @@ export function Hero(props: {
   primaryCtaLink: string;
   secondaryCtaText: string;
   secondaryCtaLink: string;
+  secondaryCtaExternal?: boolean;
 }) {
   return (
     <section className="space-y-6 py-32 md:py-48 lg:py-52">
@@ -19,7 +21,8 @@ export function Hero(props: {
         <Link
           href={props.capsuleLink}
           className="rounded-2xl bg-muted px-4 py-1.5 text-sm font-medium"
-          target="_blank"
+          target={props.capsuleExternal ? "_blank" : undefined}
+          rel={props.capsuleExternal ? "noreferrer" : undefined}
         >
           {props.capsuleText}
         </Link>
@@ -39,8 +42,8 @@ export function Hero(props: {
 
           <Link
             href={props.secondaryCtaLink}
-            target="_blank"
-            rel="noreferrer"
+            target={props.secondaryCtaExternal ? "_blank" : undefined}
+            rel={props.secondaryCtaExternal ? "noreferrer" : undefined}
             className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
           >
             {props.secondaryCtaText}
