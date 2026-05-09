@@ -1,0 +1,31 @@
+# 通用
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# Node.js / Web
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+**/build/
+**/.turbo/
+**/.vercel/
+
+# 环境变量（仅保留 *.example / *.sample 进仓库）
+**/.env*.local
+**/.env
+
+# 测试覆盖率
+**/coverage/
+
+# TypeScript
+**/*.tsbuildinfo
+
+
+# 本地 AI/IDE 任务配置
+.trae/
