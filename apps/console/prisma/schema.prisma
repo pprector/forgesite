@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  teamId          String
+  name            String
+  businessName    String?
+  industry        String?
+  oneLiner        String?
+  status          String        @default("DRAFT")
+  defaultLanguage String        @default("en")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  materials       Material[]
+  jobs            Job[]
+  extractionResults ExtractionResult[]
+  siteStructures SiteStructure[]
+
+  @@index([teamId, createdAt])
+}
+
+model Material {
+  id          String   @id @default(cuid())
+  teamId      String
+  projectId   String
+  type        String
+  sourceUrl   String?
+  originalName String?
+  storagePath String?
+  mimeType    String?
+  sizeBytes   Int?
+  parseStatus String   @default("WAITING")
+  parseError  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  jobs        Job[]
+
+  @@index([teamId, projectId, createdAt])
+}
+
+model Job {
+  id        String   @id @default(cuid())
+  teamId    String
+  projectId String
+  materialId String?
+  type      String
+  status    String   @default("PENDING")
+  attempts  Int      @default(0)
+  payload   Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  material  Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
+
+  @@index([teamId, projectId, status, createdAt])
+}
+
+model ExtractionResult {
+  id        String   @id @default(cuid())
+  teamId    String
+  projectId String
+  version   Int      @default(1)
+  status    String   @default("DRAFT")
+  entityType String?
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fields    ExtractedField[]
+
+  @@index([teamId, projectId, createdAt])
+}
+
+model ExtractedField {
+  id                 String   @id @default(cuid())
+  teamId             String
+  extractionResultId String
+  fieldPath          String
+  valueJson          Json?
+  confidence         Float?
+  sourceRefs         Json?
+  reviewStatus       String   @default("PENDING")
+  userValueJson      Json?
+  isKeyFact          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  extractionResult   ExtractionResult @relation(fields: [extractionResultId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, extractionResultId, fieldPath])
+}
+
+model SiteStructure {
+  id        String   @id @default(cuid())
+  teamId    String
+  projectId String
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pages     SitePage[]
+
+  @@index([teamId, projectId, createdAt])
+}
+
+model SitePage {
+  id          String   @id @default(cuid())
+  teamId      String
+  structureId String
+  pageType    String   @default("CUSTOM")
+  title       String
+  slug        String
+  orderIndex  Int
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  structure   SiteStructure @relation(fields: [structureId], references: [id], onDelete: Cascade)
+  modules     SiteModule[]
+
+  @@index([teamId, structureId, orderIndex])
+  @@unique([structureId, slug])
+}
+
+model SiteModule {
+  id         String   @id @default(cuid())
+  teamId     String
+  pageId     String
+  moduleType String
+  orderIndex Int
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  page       SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, pageId, orderIndex])
+}
+
+model WebsiteDraft {
+  id        String   @id @default(cuid())
+  teamId    String
+  projectId String
+  status    String   @default("DRAFT")
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pages     WebsitePage[]
+
+  @@index([teamId, projectId, createdAt])
+}
+
+model WebsitePage {
+  id        String   @id @default(cuid())
+  teamId    String
+  draftId   String
+  pageType  String   @default("CUSTOM")
+  title     String
+  slug      String
+  orderIndex Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  draft     WebsiteDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  modules   WebsiteModule[]
+
+  @@index([teamId, draftId, orderIndex])
+  @@unique([draftId, slug])
+}
+
+model WebsiteModule {
+  id         String   @id @default(cuid())
+  teamId     String
+  pageId     String
+  moduleType String
+  orderIndex Int
+  visible    Boolean  @default(true)
+  contentJson Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  page       WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, pageId, orderIndex])
+}
+
+model ContactConfig {
+  id         String   @id @default(cuid())
+  teamId     String
+  projectId  String
+  channel    String
+  enabled    Boolean  @default(false)
+  configJson Json?
+  displayJson Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([teamId, projectId, channel])
+  @@unique([projectId, channel])
+}
+
+model Lead {
+  id            String   @id @default(cuid())
+  teamId        String
+  projectId     String
+  sourcePage    String?
+  sourceChannel String
+  payload       Json
+  visitorContext Json?
+  status        String   @default("NEW")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([teamId, projectId, createdAt])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  teamId    String
+  projectId String
+  eventType String
+  pagePath  String?
+  sourceChannel String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([teamId, projectId, eventType, createdAt])
+}
