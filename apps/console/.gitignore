@@ -27,6 +27,9 @@ yarn-error.log*
 
 # local env files
 .env*.local
+dev.db
+dev.db-journal
+.data/
 
 # vercel
 .vercel
