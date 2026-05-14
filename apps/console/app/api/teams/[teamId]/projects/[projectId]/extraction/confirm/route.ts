@@ -5,8 +5,12 @@ import { NextResponse } from "next/server";
 function hasSourceRefs(sourceRefs: unknown) {
   if (!sourceRefs) return false;
   if (Array.isArray(sourceRefs)) return sourceRefs.length > 0;
-  if (typeof sourceRefs === "object") return Object.keys(sourceRefs as Record<string, unknown>).length > 0;
-  return false;
+  if (typeof sourceRefs !== "object") return false;
+  return Object.values(sourceRefs as Record<string, unknown>).some((v) => {
+    if (Array.isArray(v)) return v.length > 0;
+    if (v && typeof v === "object") return Object.keys(v as Record<string, unknown>).length > 0;
+    return false;
+  });
 }
 
 export async function POST(
@@ -55,4 +59,3 @@ export async function POST(
 
   return NextResponse.json({ ok: true });
 }
-

@@ -1,6 +1,6 @@
 import { FeatureGrid } from "@/components/features";
 import { Hero } from "@/components/hero";
-import { isStackConfigured, stackServerApp } from "@/stack";
+import { isAuthingConfigured } from "@/lib/authing";
 import {
   Clock3,
   FileText,
@@ -10,31 +10,17 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import Link from "next/link";
 
 export default async function IndexPage() {
-  if (!isStackConfigured || !stackServerApp) {
+  if (!isAuthingConfigured) {
     return (
       <div className="w-full min-h-96 flex items-center justify-center p-8">
         <div className="max-w-xl gap-4">
           <p className="font-bold text-xl">Setup Required</p>
           <p className="text-sm text-muted-foreground">
-            请先在 <code>apps/console/.env.local</code> 配置 Stack Auth 相关环境变量（参考{" "}
+            请先在 <code>apps/console/.env.local</code> 配置 Authing 相关环境变量（参考{" "}
             <code>.env.local.example</code>）。
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const project = await stackServerApp.getProject();
-  if (!project.config.clientTeamCreationEnabled) {
-    return (
-      <div className="w-full min-h-96 flex items-center justify-center">
-        <div className="max-w-xl gap-4">
-          <p className="font-bold text-xl">Setup Required</p>
-          <p className="text-sm text-muted-foreground">
-            请先在 Stack Auth Dashboard 的 <code>Project &gt; Team Settings</code>{" "}
-            中开启前端创建团队能力。开启后，这个提示会自动消失。
           </p>
         </div>
       </div>
@@ -50,7 +36,7 @@ export default async function IndexPage() {
         title="10 分钟上线一个能获客的官网"
         subtitle="上传资料，AI 自动生成内容与结构，自带 SEO / GEO，并打通发布、询盘承接与效果回看。"
         primaryCtaText="立即开始"
-        primaryCtaLink={stackServerApp.urls.signUp}
+        primaryCtaLink="/api/auth/login"
         secondaryCtaText="了解能力"
         secondaryCtaLink="/#capabilities"
         secondaryCtaExternal={false}
@@ -170,18 +156,18 @@ export default async function IndexPage() {
             上传资料即可生成首版，并一键发布，开始承接询盘。
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a
-              href={stackServerApp.urls.signUp}
+            <Link
+              href="/api/auth/login"
               className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground"
             >
               立即注册
-            </a>
-            <a
-              href={stackServerApp.urls.signIn}
+            </Link>
+            <Link
+              href="/api/auth/login"
               className="inline-flex h-11 items-center justify-center rounded-md border px-8 text-sm font-medium"
             >
               登录控制台
-            </a>
+            </Link>
           </div>
         </div>
       </section>

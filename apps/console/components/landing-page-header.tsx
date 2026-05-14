@@ -1,14 +1,14 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { useStackApp, useUser } from "@stackframe/stack";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import * as React from "react";
+import { useAuth } from "@/app/provider";
+import { cn } from "@/lib/utils";
 import { ColorModeSwitcher } from "./color-mode-switcher";
 import { Logo } from "./logo";
-import { Button, buttonVariants } from "./ui/button";
+import { Button } from "./ui/button";
 
 interface NavProps {
   items?: {
@@ -20,54 +20,34 @@ interface NavProps {
 }
 
 function SignInSignUpButtons() {
-  const app = useStackApp();
   return (
     <>
-      <Link
-        href={app.urls.signIn}
-        className={buttonVariants({ variant: "secondary" })}
-      >
+      <Button href="/api/auth/login" variant="secondary">
         登录
-      </Link>
+      </Button>
 
-      <Link
-        href={app.urls.signUp}
-        className={buttonVariants({ variant: "default" })}
-      >
+      <Button href="/api/auth/login" variant="default">
         立即开始
-      </Link>
+      </Button>
     </>
   );
 }
 
-function AuthButtonsInner() {
-  const user = useUser();
-
-  if (user) {
-    return (
-      <Link
-        href="/dashboard"
-        className={buttonVariants({ variant: "default" })}
-      >
-        进入控制台
-      </Link>
-    );
-  } else {
-    return <SignInSignUpButtons />;
-  }
-}
-
 function AuthButtons() {
-  return (
-    <React.Suspense fallback={<SignInSignUpButtons />}>
-      <AuthButtonsInner />
-    </React.Suspense>
-  );
+  const { status, user } = useAuth();
+
+  if (status === "authenticated" && user) {
+    return (
+      <Button href="/dashboard" variant="default">
+        进入控制台
+      </Button>
+    );
+  }
+
+  return <SignInSignUpButtons />;
 }
 
-function MobileItems(
-  props: NavProps & { onNavigate?: () => void }
-) {
+function MobileItems(props: NavProps & { onNavigate?: () => void }) {
   return (
     <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto p-6 pb-32 animate-in slide-in-from-bottom-80 md:hidden">
       <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">

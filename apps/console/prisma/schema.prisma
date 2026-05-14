@@ -3,8 +3,51 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model ConsoleUser {
+  id          String              @id @default(cuid())
+  authingSub  String              @unique
+  email       String?             @unique
+  username    String?
+  displayName String?
+  avatarUrl   String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  ownedTeams  ConsoleTeam[]       @relation("ConsoleTeamOwner")
+  memberships ConsoleTeamMember[]
+}
+
+model ConsoleTeam {
+  id             String              @id @default(cuid())
+  name           String
+  normalizedName String?
+  ownerUserId    String
+  isPersonal     Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  owner          ConsoleUser         @relation("ConsoleTeamOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  memberships    ConsoleTeamMember[]
+
+  @@index([ownerUserId, createdAt])
+}
+
+model ConsoleTeamMember {
+  id        String      @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String      @default("OWNER")
+  createdAt DateTime    @default(now())
+
+  team      ConsoleTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      ConsoleUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId, createdAt])
 }
 
 model Project {

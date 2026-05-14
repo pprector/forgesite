@@ -1,6 +1,6 @@
-import React from "react";
+import { Button } from "@arco-design/web-react";
 import { Check } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
 
 type PricingCardProps = {
   title: string;
@@ -47,14 +46,12 @@ export function PricingCard(props: PricingCardProps) {
         </ul>
       </CardContent>
       <CardFooter>
-        <Link
+        <Button
+          type={props.isPopular ? "primary" : "outline"}
           href={props.buttonHref}
-          className={buttonVariants({
-            variant: props.isPopular ? "default" : "outline",
-          })}
         >
           {props.buttonText}
-        </Link>
+        </Button>
       </CardFooter>
     </Card>
   );

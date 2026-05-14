@@ -1,10 +1,11 @@
 'use client';
 
+import { useAuth } from "@/app/provider";
 import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
-import { SelectedTeamSwitcher, useUser } from "@stackframe/stack";
+import { TeamSwitcher } from "@/components/team-switcher";
+import { UserMenu } from "@/components/user-menu";
 import {
   BarChart3,
-  Bot,
   Globe,
   LayoutDashboard,
   Mail,
@@ -13,6 +14,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import * as React from "react";
 
 const navigationItems: SidebarItem[] = [
   {
@@ -29,12 +31,6 @@ const navigationItems: SidebarItem[] = [
     name: "素材库",
     href: "/materials",
     icon: Upload,
-    type: "item",
-  },
-  {
-    name: "AI 提取审核",
-    href: "/ai-extraction",
-    icon: Bot,
     type: "item",
   },
   {
@@ -79,27 +75,40 @@ const navigationItems: SidebarItem[] = [
 
 export default function Layout(props: { children: React.ReactNode }) {
   const params = useParams<{ teamId: string }>();
-  const user = useUser({ or: 'redirect' });
-  const team = user.useTeam(params.teamId);
   const router = useRouter();
+  const { status, teams, switchTeam } = useAuth();
+  const team = teams.find((item) => item.id === params.teamId);
 
-  if (!team) {
-    router.push('/dashboard');
-    return null;
-  }
+  React.useEffect(() => {
+    if (status !== "authenticated") return;
+    if (!team) {
+      router.replace("/dashboard");
+    }
+  }, [router, status, team]);
+
+  if (status === "loading") return null;
+  if (!team) return null;
 
   return (
     <SidebarLayout 
       items={navigationItems}
       basePath={`/dashboard/${team.id}`}
-      sidebarTop={<SelectedTeamSwitcher 
-        selectedTeam={team}
-        urlMap={(team) => `/dashboard/${team.id}`}
-      />}
+      sidebarTop={
+        <TeamSwitcher
+          teams={teams}
+          value={team.id}
+          onChange={async (event) => {
+            const nextTeamId = event.target.value;
+            await switchTeam(nextTeamId);
+            router.push(`/dashboard/${nextTeamId}`);
+          }}
+        />
+      }
       baseBreadcrumb={[{
-        title: team.displayName,
+        title: team.name,
         href: `/dashboard/${team.id}`,
       }]}
+      userMenu={<UserMenu />}
     >
       {props.children}
     </SidebarLayout>

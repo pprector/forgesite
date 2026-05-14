@@ -1,7 +1,7 @@
-import { StackProvider, StackTheme } from "@stackframe/stack";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { isStackConfigured, stackServerApp } from "../stack";
+import "@arco-design/web-react/dist/css/arco.css";
+import { isAuthingConfigured } from "@/lib/authing";
 import "./globals.css";
 import { Provider } from "./provider";
 
@@ -17,7 +17,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (!isStackConfigured || !stackServerApp) {
+  if (!isAuthingConfigured) {
     return (
       <html lang="zh-CN" suppressHydrationWarning>
         <body className={inter.className}>
@@ -26,15 +26,18 @@ export default function RootLayout({
               <div className="max-w-2xl w-full space-y-4">
                 <h1 className="text-2xl font-semibold">Setup Required</h1>
                 <p className="text-gray-600 dark:text-gray-300">
-                  当前 Console 已拷贝完成，但尚未配置 Stack Auth 环境变量。
+                  当前 Console 已拷贝完成，但尚未配置 Authing 环境变量。
                   请在 <code className="px-1 py-0.5 bg-muted rounded">apps/console</code>{" "}
                   目录下创建 <code className="px-1 py-0.5 bg-muted rounded">.env.local</code>，
-                  并填入以下三项：
+                  并填入以下配置：
                 </p>
                 <ul className="list-disc pl-5 text-sm">
-                  <li>NEXT_PUBLIC_STACK_PROJECT_ID</li>
-                  <li>NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY</li>
-                  <li>STACK_SECRET_SERVER_KEY</li>
+                  <li>AUTHING_ISSUER</li>
+                  <li>AUTHING_CLIENT_ID</li>
+                  <li>AUTHING_CLIENT_SECRET</li>
+                  <li>AUTHING_REDIRECT_URI</li>
+                  <li>AUTHING_POST_LOGOUT_REDIRECT_URI</li>
+                  <li>SESSION_SECRET</li>
                 </ul>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   参考文件：<code className="px-1 py-0.5 bg-muted rounded">apps/console/.env.local.example</code>
@@ -50,11 +53,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body className={inter.className}>
-        <Provider>
-          <StackProvider app={stackServerApp}>
-            <StackTheme>{children}</StackTheme>
-          </StackProvider>
-        </Provider>
+        <Provider>{children}</Provider>
       </body>
     </html>
   );

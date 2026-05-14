@@ -28,7 +28,6 @@ npm run dev
 
 ## 当前已包含的 Console 路由（占位页）
 - `/dashboard/[teamId]/materials` 素材库
-- `/dashboard/[teamId]/ai-extraction` AI 提取审核
 - `/dashboard/[teamId]/website` 网站与页面
 - `/dashboard/[teamId]/seo-geo` SEO / GEO
 - `/dashboard/[teamId]/leads` 询盘

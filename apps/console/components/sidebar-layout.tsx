@@ -1,21 +1,13 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { UserButton } from "@stackframe/stack";
-import { LucideIcon, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "./ui/breadcrumb";
-import { buttonVariants } from "./ui/button";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb";
+import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
@@ -28,7 +20,7 @@ function useSegment(basePath: string) {
 type Item = {
   name: React.ReactNode;
   href: string;
-  icon: LucideIcon;
+  icon: React.ElementType;
   type: "item";
 };
 
@@ -52,19 +44,16 @@ function NavItem(props: {
   const selected = segment === props.item.href;
 
   return (
-    <Link
+    <Button
       href={props.basePath + props.item.href}
-      className={cn(
-        buttonVariants({ variant: "ghost", size: "sm" }),
-        selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2"
-      )}
+      variant={selected ? "default" : "secondary"}
+      size="sm"
+      className="flex-grow justify-start text-md px-2"
       onClick={props.onClick}
-      prefetch={true}
     >
       <props.item.icon className="mr-2 h-5 w-5" />
       {props.item.name}
-    </Link>
+    </Button>
   );
 }
 
@@ -74,9 +63,6 @@ function SidebarContent(props: {
   sidebarTop?: React.ReactNode;
   basePath: string;
 }) {
-  const path = usePathname();
-  const segment = useSegment(props.basePath);
-
   return (
     <div className="flex flex-col h-full items-stretch">
       <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0 border-b">
@@ -117,7 +103,6 @@ export type HeaderBreadcrumbItem = { title: string; href: string };
 
 function HeaderBreadcrumb(props: { items: SidebarItem[], baseBreadcrumb?: HeaderBreadcrumbItem[], basePath: string }) {
   const segment = useSegment(props.basePath);
-  console.log(segment)
   const item = props.items.find((item) => item.type === 'item' && item.href === segment);
   const title: string | undefined = (item as any)?.name
 
@@ -167,7 +152,7 @@ export default function SidebarLayout(props: {
               onOpenChange={(open) => setSidebarOpen(open)}
               open={sidebarOpen}
             >
-              <SheetTrigger>
+              <SheetTrigger aria-label="Toggle menu">
                 <Menu />
               </SheetTrigger>
               <SheetContent side="left" className="w-[240px] p-0">

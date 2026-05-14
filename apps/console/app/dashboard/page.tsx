@@ -1,4 +1,5 @@
-import { stackServerApp } from "@/stack";
+import { getAuthContext } from "@/lib/server-auth";
+import { redirect } from "next/navigation";
 import { PageClient } from "./page-client";
 
 export const metadata = {
@@ -6,6 +7,15 @@ export const metadata = {
 };
 
 export default async function Dashboard() {
-  const project = stackServerApp ? await stackServerApp.getProject() : null;
-  return <PageClient clientTeamCreationEnabled={!!project?.config.clientTeamCreationEnabled} />;
+  const auth = await getAuthContext();
+
+  if (!auth) {
+    redirect("/api/auth/login?returnTo=/dashboard");
+  }
+
+  if (auth.activeTeam) {
+    redirect(`/dashboard/${auth.activeTeam.id}`);
+  }
+
+  return <PageClient />;
 }
