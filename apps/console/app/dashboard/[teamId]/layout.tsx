@@ -34,6 +34,11 @@ const navigationItems: SidebarItem[] = [
     type: "item",
   },
   {
+    name: "信息审核",
+    href: "/review",
+    type: "item",
+  },
+  {
     name: "网站与页面",
     href: "/website",
     icon: Globe,
@@ -80,11 +85,16 @@ export default function Layout(props: { children: React.ReactNode }) {
   const team = teams.find((item) => item.id === params.teamId);
 
   React.useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace(`/login?returnTo=/dashboard/${params.teamId}`);
+      return;
+    }
+
     if (status !== "authenticated") return;
     if (!team) {
       router.replace("/dashboard");
     }
-  }, [router, status, team]);
+  }, [params.teamId, router, status, team]);
 
   if (status === "loading") return null;
   if (!team) return null;
@@ -97,8 +107,7 @@ export default function Layout(props: { children: React.ReactNode }) {
         <TeamSwitcher
           teams={teams}
           value={team.id}
-          onChange={async (event) => {
-            const nextTeamId = event.target.value;
+          onChange={async (nextTeamId) => {
             await switchTeam(nextTeamId);
             router.push(`/dashboard/${nextTeamId}`);
           }}
