@@ -36,6 +36,7 @@ const navigationItems: SidebarItem[] = [
   {
     name: "信息审核",
     href: "/review",
+    icon: Search,
     type: "item",
   },
   {

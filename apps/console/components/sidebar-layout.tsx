@@ -1,20 +1,31 @@
 "use client";
 
-import { UserButton } from "@stackframe/stack";
-import { Menu } from "lucide-react";
-import { useTheme } from "next-themes";
+import * as React from "react";
+import { Breadcrumb, Button, Drawer, Layout, Menu } from "@arco-design/web-react";
+import { IconMenuFold } from "@arco-design/web-react/icon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 function useSegment(basePath: string) {
   const path = usePathname();
   const result = path.slice(basePath.length, path.length);
   return result ? result : "/";
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const query = window.matchMedia("(max-width: 768px)");
+    const update = () => setIsMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return isMobile;
 }
 
 type Item = {
@@ -35,67 +46,85 @@ type Label = {
 
 export type SidebarItem = Item | Sep | Label;
 
-function NavItem(props: {
-  item: Item;
-  onClick?: () => void;
-  basePath: string;
-}) {
-  const segment = useSegment(props.basePath);
-  const selected = segment === props.item.href;
-
-  return (
-    <Button
-      href={props.basePath + props.item.href}
-      variant={selected ? "default" : "secondary"}
-      size="sm"
-      className="flex-grow justify-start text-md px-2"
-      onClick={props.onClick}
-    >
-      <props.item.icon className="mr-2 h-5 w-5" />
-      {props.item.name}
-    </Button>
-  );
-}
-
 function SidebarContent(props: {
-  onNavigate?: () => void;
   items: SidebarItem[];
   sidebarTop?: React.ReactNode;
   basePath: string;
+  selectedKey: string;
+  onSelect: (key: string) => void;
 }) {
+  const groups: Array<{ title: React.ReactNode | null; items: Item[] }> = [];
+  let current: { title: React.ReactNode | null; items: Item[] } = { title: null, items: [] };
+
+  props.items.forEach((item) => {
+    if (item.type === "label") {
+      if (current.title !== null || current.items.length > 0) {
+        groups.push(current);
+      }
+      current = { title: item.name, items: [] };
+      return;
+    }
+
+    if (item.type === "separator") {
+      if (current.items.length > 0) {
+        groups.push(current);
+        current = { title: null, items: [] };
+      }
+      return;
+    }
+
+    current.items.push(item);
+  });
+
+  if (current.title !== null || current.items.length > 0) {
+    groups.push(current);
+  }
+
   return (
-    <div className="flex flex-col h-full items-stretch">
-      <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0 border-b">
+    <Layout.Sider
+      theme="light"
+      width={240}
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        borderRight: "1px solid var(--color-neutral-3)",
+      }}
+    >
+      <div style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "1px solid var(--color-neutral-3)" }}>
         {props.sidebarTop}
       </div>
-      <div className="flex flex-grow flex-col gap-2 pt-4 overflow-y-auto">
-        {props.items.map((item, index) => {
-          if (item.type === "separator") {
-            return <Separator key={index} className="my-2" />;
-          } else if (item.type === "item") {
-            return (
-              <div key={index} className="flex px-2">
-                <NavItem
-                  item={item}
-                  onClick={props.onNavigate}
-                  basePath={props.basePath}
-                />
-              </div>
-            );
-          } else {
-            return (
-              <div key={index} className="flex my-2">
-                <div className="flex-grow justify-start text-sm font-medium text-zinc-500 px-2">
-                  {item.name}
-                </div>
-              </div>
-            );
-          }
-        })}
 
-        <div className="flex-grow" />
+      <div style={{ flex: 1, overflow: "auto" }}>
+        <Menu
+          selectedKeys={[props.selectedKey]}
+          onClickMenuItem={(key) => props.onSelect(String(key))}
+          style={{ borderRight: "none" }}
+        >
+          {groups.map((group, index) => {
+            if (group.title) {
+              return (
+                <Menu.ItemGroup key={`group-${index}`} title={group.title}>
+                  {group.items.map((it) => (
+                    <Menu.Item key={it.href} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <it.icon size={18} />
+                      <span>{it.name}</span>
+                    </Menu.Item>
+                  ))}
+                </Menu.ItemGroup>
+              );
+            }
+
+            return group.items.map((it) => (
+              <Menu.Item key={it.href} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <it.icon size={18} />
+                <span>{it.name}</span>
+              </Menu.Item>
+            ));
+          })}
+        </Menu>
       </div>
-    </div>
+    </Layout.Sider>
   );
 }
 
@@ -108,20 +137,12 @@ function HeaderBreadcrumb(props: { items: SidebarItem[], baseBreadcrumb?: Header
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
-        {props.baseBreadcrumb?.map((item, index) => (
-          <>
-            <BreadcrumbItem key={index}>
-              <BreadcrumbLink href={item.href}>{item.title}</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator key={`separator-${index}`} />
-          </>
-        ))}
-
-        <BreadcrumbItem>
-          <BreadcrumbPage>{title}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
+      {props.baseBreadcrumb?.map((item, index) => (
+        <Breadcrumb.Item key={`${item.href}-${index}`}>
+          <Link href={item.href}>{item.title}</Link>
+        </Breadcrumb.Item>
+      ))}
+      <Breadcrumb.Item key={segment}>{title}</Breadcrumb.Item>
     </Breadcrumb>
   );
 }
@@ -132,52 +153,89 @@ export default function SidebarLayout(props: {
   items: SidebarItem[];
   sidebarTop?: React.ReactNode;
   basePath: string;
+  userMenu?: React.ReactNode;
 }) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { resolvedTheme, setTheme } = useTheme();
+  const isMobile = useIsMobile();
+  const selectedKey = useSegment(props.basePath);
+
+  const handleSelect = (href: string) => {
+    router.push(props.basePath + href);
+    setSidebarOpen(false);
+  };
 
   return (
-    <div className="w-full flex">
-      <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
-        <SidebarContent items={props.items} sidebarTop={props.sidebarTop} basePath={props.basePath} />
-      </div>
-      <div className="flex flex-col flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
-          <div className="hidden md:flex">
-            <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} items={props.items} />
-          </div>
+    <Layout style={{ minHeight: "100vh" }}>
+      {isMobile ? null : (
+        <SidebarContent
+          items={props.items}
+          sidebarTop={props.sidebarTop}
+          basePath={props.basePath}
+          selectedKey={selectedKey}
+          onSelect={handleSelect}
+        />
+      )}
 
-          <div className="flex md:hidden items-center">
-            <Sheet
-              onOpenChange={(open) => setSidebarOpen(open)}
-              open={sidebarOpen}
-            >
-              <SheetTrigger aria-label="Toggle menu">
-                <Menu />
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[240px] p-0">
-                <SidebarContent
-                  onNavigate={() => setSidebarOpen(false)}
-                  items={props.items}
-                  sidebarTop={props.sidebarTop}
-                  basePath={props.basePath}
+      <Layout>
+        <Layout.Header
+          style={{
+            height: 56,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 16px",
+            background: "var(--color-bg-1)",
+            borderBottom: "1px solid var(--color-neutral-3)",
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            {isMobile ? (
+              <>
+                <Button
+                  type="text"
+                  icon={<IconMenuFold />}
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Toggle menu"
                 />
-              </SheetContent>
-            </Sheet>
-
-            <div className="ml-4 flex md:hidden">
+                <HeaderBreadcrumb
+                  baseBreadcrumb={props.baseBreadcrumb}
+                  basePath={props.basePath}
+                  items={props.items}
+                />
+              </>
+            ) : (
               <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} items={props.items} />
-            </div>
+            )}
           </div>
 
-          <UserButton
-            colorModeToggle={() =>
-              setTheme(resolvedTheme === "light" ? "dark" : "light")
-            }
-          />
-        </div>
-        <div className="flex-grow">{props.children}</div>
-      </div>
-    </div>
+          <div style={{ display: "flex", alignItems: "center" }}>{props.userMenu}</div>
+        </Layout.Header>
+
+        <Layout.Content style={{ padding: 0 }}>{props.children}</Layout.Content>
+      </Layout>
+
+      <Drawer
+        width={260}
+        title={null}
+        visible={sidebarOpen}
+        onCancel={() => setSidebarOpen(false)}
+        footer={null}
+        closable={false}
+        bodyStyle={{ padding: 0, height: "100%" }}
+      >
+        <SidebarContent
+          items={props.items}
+          sidebarTop={props.sidebarTop}
+          basePath={props.basePath}
+          selectedKey={selectedKey}
+          onSelect={handleSelect}
+        />
+      </Drawer>
+    </Layout>
   );
 }

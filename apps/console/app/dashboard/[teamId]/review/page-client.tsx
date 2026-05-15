@@ -208,7 +208,7 @@ export function ReviewClient() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Text strong ellipsis={{ showTooltip: true }}>
+                      <Text bold ellipsis={{ showTooltip: true }}>
                         {field.name}
                       </Text>
                       {field.status === "pending" && <Tag color="gray" size="small">待处理</Tag>}
@@ -267,7 +267,7 @@ export function ReviewClient() {
               <Space direction="vertical" size="small">
                 <div>
                   <Text type="secondary">AI 提取值：</Text>
-                  <Text strong>{selectedField.aiValue}</Text>
+                  <Text bold>{selectedField.aiValue}</Text>
                 </div>
                 <div>
                   <Text type="secondary">置信度评估：</Text>
@@ -350,7 +350,7 @@ export function ReviewClient() {
               <Timeline style={{ marginTop: 16 }}>
                 {selectedField.history.map((log, idx) => (
                   <Timeline.Item key={idx} label={log.time}>
-                    <Text strong>{log.user}</Text>
+                    <Text bold>{log.user}</Text>
                     <Text style={{ marginLeft: 8 }}>{log.action}</Text>
                   </Timeline.Item>
                 ))}
